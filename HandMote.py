@@ -1,26 +1,31 @@
 import numpy as np
 import cv2
+import mediapipe as mp
+import time 
 
 cap = cv2.VideoCapture(0)
 
+mpHands = mp.solutions.hands
+hands = mpHands.Hands()
+mpDraw = mp.solutions.drawing_utils
+
 while True:
     ret, frame = cap.read()
-    width = int(cap.get(3))
-    height = int(cap.get(4))
 
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    lower_blue = np.array([90,50,50])
-    upper_blue = np.array([130, 255, 255])
+    imgRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    results = hands.process(imgRGB)
     
-    mask = cv2.inRange(hsv, lower_blue, upper_blue)
-
-    result = cv2.bitwise_and(frame, frame, mask = mask)
-
-    imgCorners = cv2.cvtColor(frame, cv2.COLOR_BG2GRAY)
-
-    corners = cv2.goodFeaturesToTrack(imgCorners, 100, .01, 10)
-
-    cv2.imshow('frame', result)
+    if results.multi_hand_landmarks:
+        for handLms in results.multi_hand_landmarks:
+            for id, lm in enumerate(handLms.landmark):
+                h, w, c = frame.shape
+                cx, cy = int(lm.x * w), int(lm.y * h)
+                print(id,lm)
+                if id == 0:
+                    cv2.circle(frame, (cx, cy), 25, (255, 0, 255), cv2.FILLED)
+            mpDraw.draw_landmarks(frame, handLms, mpHands.HAND_CONNECTIONS)
+            
+    cv2.imshow('frame', frame)
     
     if cv2.waitKey(1) == ord('q'):
         break
