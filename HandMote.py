@@ -13,6 +13,8 @@ thumb_cx_global = 0
 thumb_cy_global = 0
 pointer_cx_global = 0
 pointer_cy_global = 0
+middle_cx_global = 0
+middle_cy_global = 0
 ret = False
 cap = cv2.VideoCapture(0)
 mpHands = mp.solutions.hands
@@ -27,6 +29,8 @@ def FindHands(cam,):
     global thumb_cy_global 
     global pointer_cx_global 
     global pointer_cy_global 
+    global middle_cx_global
+    global middle_cy_global
     while True:
         
         ret, frame = cam.read()
@@ -53,6 +57,10 @@ def FindHands(cam,):
                         pointer_cx_global = cx
                         pointer_cy_global = cy
                         cv2.circle(frame, (cx, cy), 20, (255, 0, 255), cv2.FILLED)
+                    if id == 12:
+                        middle_cx_global = cx
+                        middle_cy_global = cy
+                        cv2.circle(frame, (cx, cy), 20, (255, 0, 255), cv2.FILLED)
                         
                         
                 mpDraw.draw_landmarks(frame, handLms, mpHands.HAND_CONNECTIONS)
@@ -73,12 +81,18 @@ def MoveMouse(cxInverse,):
     global thumb_cy_global
     global pointer_cx_global
     global pointer_cy_global
+    global middle_cx_global
+    global middle_cy_global
     while True:
         print("ydist", pointer_cy_global-thumb_cy_global)
         print("xdist", pointer_cx_global-thumb_cx_global)
         if (pointer_cx_global-thumb_cx_global >= -100 & pointer_cy_global-thumb_cy_global >= -100):
-            pag.click()
+            pag.click(button='left')
             print("click")
+        if (middle_cx_global-thumb_cx_global >= -100 & middle_cy_global-thumb_cy_global >= -100):
+            pag.click(button='right')
+            print("click")
+
         cxInverse = (cursor_cx_global *-1) + 1920
         pag.moveTo(cxInverse, 2*cursor_cy_global,.01)
 
