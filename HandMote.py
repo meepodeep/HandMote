@@ -7,8 +7,12 @@ import threading
 
 cxInverse = 0
 pag.FAILSAFE = False
-cx_global = 0
-cy_global = 0
+cursor_cx_global = 0
+cursor_cy_global = 0
+thumb_cx_global = 0
+thumb_cy_global = 0
+pointer_cx_global = 0
+pointer_cy_global = 0
 ret = False
 cap = cv2.VideoCapture(0)
 mpHands = mp.solutions.hands
@@ -17,8 +21,12 @@ mpDraw = mp.solutions.drawing_utils
 
    
 def FindHands(cam,):
-    global cx_global
-    global cy_global
+    global cursor_cx_global
+    global cursor_cy_global
+    global thumb_cx_global 
+    global thumb_cy_global 
+    global pointer_cx_global 
+    global pointer_cy_global 
     while True:
         
         ret, frame = cam.read()
@@ -32,13 +40,20 @@ def FindHands(cam,):
                 for id, lm in enumerate(handLms.landmark):
                     h, w, c = frame.shape
                     cx, cy = int(lm.x * w), int(lm.y * h)
-                    cy_global = cy
-                    cx_global = cx
+                    cursor_cy_global = cy
+                    cursor_cx_global = cx
                     if id == 0:
                         cv2.circle(frame, (cx, cy), 25, (255, 0, 255), cv2.FILLED)
-                    
-                    if id == 2:
+                        
+                    if id == 4:
+                        thumb_cx_global = cx
+                        thumb_cy_global = cy
                         cv2.circle(frame, (cx, cy), 20, (255, 0, 255), cv2.FILLED)
+                    if id == 8:
+                        pointer_cx_global = cx
+                        pointer_cy_global = cy
+                        cv2.circle(frame, (cx, cy), 20, (255, 0, 255), cv2.FILLED)
+                        
                         
                 mpDraw.draw_landmarks(frame, handLms, mpHands.HAND_CONNECTIONS)
     
@@ -52,12 +67,22 @@ def FindHands(cam,):
     
     
 def MoveMouse(cxInverse,):
-    global cx_global
-    global cy_global
+    global cursor_cx_global
+    global cursor_cy_global
+    global thumb_cx_global
+    global thumb_cy_global
+    global pointer_cx_global
+    global pointer_cy_global
     while True:
-        print(cx_global, cy_global)
-        cxInverse = (cx_global *-1) + 1920
-        pag.moveTo(2*cxInverse, 2*cy_global,.01)
+        print("ydist", pointer_cy_global-thumb_cy_global)
+        print("xdist", pointer_cx_global-thumb_cx_global)
+        if (pointer_cx_global-thumb_cx_global >= -100 & pointer_cy_global-thumb_cy_global >= -100):
+            pag.click()
+            print("click")
+        cxInverse = (cursor_cx_global *-1) + 1920
+        pag.moveTo(cxInverse, 2*cursor_cy_global,.01)
+
+
         
         
 if __name__ == '__main__':
