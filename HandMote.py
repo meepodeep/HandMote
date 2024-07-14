@@ -3,29 +3,31 @@ import cv2
 import mediapipe as mp
 import time 
 import pyautogui as pag
-import multiprocessing
+import threading
 
-cx = 0
 cxInverse = 0
-cy = 0
 pag.FAILSAFE = False
+cx = 0
+cy = 0
+ret = False
 cap = cv2.VideoCapture(0)
 mpHands = mp.solutions.hands
 hands = mpHands.Hands()
 mpDraw = mp.solutions.drawing_utils
-def MoveMouse(cx):
+def MoveMouse(cx, cy):
     while True:
         cxInverse = (cx *-1) + 1920
         pag.moveTo(2.2*cxInverse, 2*cy,.01)
 
-    
-def FindHands(cap):
+   
+def FindHands(cam,):
+
     while True:
-        frame = cap.read()
+        ret, frame = cam.read()
         imgRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = cv2.resize(frame, (1920, 1080))
         results = hands.process(imgRGB)
-        
+
         if results.multi_hand_landmarks:
 
             for handLms in results.multi_hand_landmarks:
@@ -40,10 +42,16 @@ def FindHands(cap):
             
 
         cv2.imshow('frame', frame)
-    
-p1 = multiprocessing.Process(target=MoveMouse, args=(cx, ))
-p2 = multiprocessing.Process(target=FindHands, args=(cap, ))
+        if cv2.waitKey(1) == ord('q'):
+            break
+    cap.release()
+    cv2.destroyAllWindows()
+
 if __name__ == '__main__':
+    t1 = threading.Thread(target = FindHands,args=(cap,))
+    t2 = threading.Thread(target = MoveMouse,args=(cx,cy))
+    t1.start()
+    t2.start()
     
-    p1.start()
-    p2.start()
+
+     
